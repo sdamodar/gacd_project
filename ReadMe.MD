@@ -1,5 +1,9 @@
 Create a directory called 'dcProject' for code.
+
 Create a subdirectory 'data' under 'dcProject' for data files
+
+Download the data from https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip
+
 Copy following files to dcProject\data:
 	UCI HAR Dataset\activity_labels.txt
 	UCI HAR Dataset\features.txt

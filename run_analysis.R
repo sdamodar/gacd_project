@@ -7,11 +7,8 @@ library(dplyr)
 
 ### (1) Create column names from features.txt file
 #  Read raw data
-rawfeaturetxt <- read.table("./data/features.txt",header=FALSE)
+featuretxt <- read.table("./data/features.txt",header=FALSE)
 
-#  Since feature names are repeating (or duplicated), concatenate 
-#  feature sequence number and feature text
-featuretxt <- paste(rawfeaturetxt$V1, rawfeaturetxt$V2, sep="_")
 
 ### (2) Create Test dataset (2947 rows, 563 columns)
 # Load activity id and subject id for test data from files
@@ -22,18 +19,14 @@ testSubjectId <- read.csv("./data/subject_test.txt", header = FALSE)
 testActivityId <- rename(testActivityId, Activity=V1)
 testSubjectId <- rename(testSubjectId, Subject=V1)
 
-#Create testActSubId by merging testSubjectId and testActivityid
-testActSubId <- testActivityId
-testActSubId$Subject <- testSubjectId$Subject
-
 # Create test dataset body 
 testdsbody <- read.table("./data/X_test.txt", header = FALSE)
 
 # Rename the columns to feature names
-colnames(testdsbody) <- featuretxt
+colnames(testdsbody) <- featuretxt$V2
 
 #Integrate test data rowids and test data body to get test dataset
-testds <- cbind(testActSubId,testdsbody)
+testds <- cbind(testActivityId, testSubjectId,testdsbody)
 
 ### (3) Create Train dataset (7352 rows, 563 columns)
 # Load activity id and subject id for train data from files
@@ -44,18 +37,14 @@ trainSubjectId <- read.csv("./data/subject_train.txt", header = FALSE)
 trainActivityId <- rename(trainActivityId, Activity=V1)
 trainSubjectId <- rename(trainSubjectId, Subject=V1)
 
-#Create trainActSubId by merging trainSubjectId and trainActivityid
-trainActSubId <- trainActivityId
-trainActSubId$Subject <- trainSubjectId$Subject
-
 # Create train dataset body 
 traindsbody <- read.table("./data/X_train.txt", header = FALSE)
 
 # Rename the columns to feature names
-colnames(traindsbody) <- featuretxt
+colnames(traindsbody) <- featuretxt$V2
 
 #Integrate train data rowids and train data body to get test dataset
-trainds <- cbind(trainActSubId,traindsbody)
+trainds <- cbind(trainActivityId, trainSubjectId,traindsbody)
 
 ### (4) Merge Test dataset and Train dataset to create Full dataset
 ###     (10299 rows, 563 columns)
@@ -69,11 +58,15 @@ fullds$Activity <- sub("4", "SITTING", fullds$Activity)
 fullds$Activity <- sub("5", "STANDING", fullds$Activity)
 fullds$Activity <- sub("6", "LAYING", fullds$Activity)
 
+# Identify columns with mean and std
+mean_std_cols <- grep("([Mm]ean|std)", names(fullds))
 
+# Create the tidyds
+tidyds <- fullds[ ,c(1:2,mean_std_cols)]
 
 ### (5) Create a new dataset with the average of each variable
 ### for each activity and each subject
-tidydsResult <- ddply(fullds, .(Activity,Subject), colwise(mean))
+tidydsResult <- ddply(tidyds, .(Activity,Subject), colwise(mean))
 
 #  Write the output to a file
-write.table(tidydsResult,"./data/tidyresultds.txt", row.names = FALSE)
+write.table(tidydsResult,"./data/tidydsresult.txt", row.names = FALSE)
